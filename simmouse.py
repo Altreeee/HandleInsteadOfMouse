@@ -53,6 +53,9 @@ while running:
     if joystick.get_button(2):  # X键
         pyautogui.press('backspace')
 
+    if joystick.get_button(4):  # LB键
+        pyautogui.hotkey('ctrl', 'r')
+
     # 退出程序
     if joystick.get_button(3):  # Y键
         running = False
