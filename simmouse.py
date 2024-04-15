@@ -6,9 +6,34 @@ import pygame
 from sys import exit
 import pyautogui
 import time
-
+import pygetwindow as gw
 
 import vibration
+
+
+
+def is_browser_active():
+    # 获取当前活动窗口
+    active_window = gw.getActiveWindow()
+
+    # 如果没有活动窗口，返回 False
+    if active_window is None:
+        return False
+
+    # 获取当前活动窗口的标题
+    window_title = active_window.title
+
+    # 浏览器的关键字列表
+    browser_keywords = ["Chrome", "Firefox", "Edge", "Safari"]
+
+    # 判断当前活动窗口的标题是否包含浏览器的关键字
+    for keyword in browser_keywords:
+        if keyword in window_title:
+            return True
+
+    return False
+
+
 
 # 初始化 Pygame
 pygame.init()
@@ -109,8 +134,14 @@ while running:
     if joystick.get_button(2):  # X键
         pyautogui.press('backspace')
 
-    if joystick.get_button(4):  # LB键
+    if joystick.get_button(4):  # LB键 刷新浏览器页面
         pyautogui.hotkey('ctrl', 'r')
+
+    if joystick.get_button(5):  # RB键 退出当前页面
+        if is_browser_active():
+            pyautogui.hotkey('ctrl', 'w')
+        else:
+            pyautogui.hotkey('alt', 'f4')
 
     if left > 0:  # LT键
         pyautogui.press('left')
