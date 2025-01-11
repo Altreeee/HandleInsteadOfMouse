@@ -1,5 +1,8 @@
 '''
-左摇杆光标移动，右摇杆滚轮，A键鼠标左键，B键鼠标右键，X键Backspace删除，Y键退出程序
+左摇杆光标移动; 右摇杆滚轮; A键鼠标左键; B键鼠标右键; X键Backspace删除; Y键退出程序
+LT键 <-; RT键 ->
+十字按键：下 将焦点转移至任务栏；左、右 左右移动; A 确定; B 取消
+在浏览器中时; LB键 切换到左一个浏览器页面; RB键 切换到右一个浏览器页面  
 '''
 
 import pygame
@@ -7,6 +10,9 @@ from sys import exit
 import pyautogui
 import time
 import pygetwindow as gw
+import win32gui  
+import win32con  
+import ctypes  
 
 import vibration
 
@@ -55,6 +61,12 @@ running = True
 mouse_move_yes = 0
 scroll_axis_yes = 0
 
+# 定义隐藏和显示鼠标的函数  
+def hide_cursor():  
+    ctypes.windll.user32.ShowCursor(False)  
+
+def show_cursor():  
+    ctypes.windll.user32.ShowCursor(True)  
 
 
 while running:
@@ -68,6 +80,55 @@ while running:
     scroll_axis = joystick.get_axis(3)
     left = joystick.get_axis(4)
     right = joystick.get_axis(5)
+
+
+     # 检测十字按键（D-Pad）  
+    if event.type == pygame.JOYHATMOTION:  # D-Pad 事件  
+        hat_value = joystick.get_hat(0)  # 获取第一个 hat 的状态  
+        x, y = hat_value  # 分别获取 x 和 y 的值  
+
+        if x == -1:   #print("D-Pad 向左")  
+            pyautogui.press('left')  
+        elif x == 1:  #print("D-Pad 向右")  
+            pyautogui.press('right')  
+        if y == -1:  #print("D-Pad 向下")  
+            pyautogui.hotkey('win', 't')  # 切换到任务栏  
+            time.sleep(0.5)  # 等待任务栏切换完成  
+
+            # 进入等待输入的循环  
+            waiting = True  
+            # 隐藏鼠标  
+            hide_cursor()  
+            while waiting:  
+                # 获取新的事件  
+                for sub_event in pygame.event.get():  
+                    if sub_event.type == pygame.QUIT:  
+                        running = False  
+                        waiting = False  
+                        break  
+
+                    # 检测新的 D-Pad 输入  
+                    if sub_event.type == pygame.JOYHATMOTION:  
+                        hat_value = joystick.get_hat(0)  
+                        x, y = hat_value  
+                        if x == -1:   #print("D-Pad 向左")  
+                            pyautogui.press('left')  
+                        elif x == 1:  #print("D-Pad 向右")  
+                            pyautogui.press('right')  
+
+                    # 检测 A 键或 B 键  
+                    if joystick.get_button(0):  # A键  
+                        pyautogui.press('enter')  # 模拟按下 Enter 键  
+                        waiting = False  # 退出等待循环  
+                    elif joystick.get_button(1):  # B键  
+                        pyautogui.press('esc')  # 模拟按下 Esc 键，取消任务栏焦点  
+                        waiting = False  # 退出等待循环  
+
+            # 恢复鼠标  
+            show_cursor()  
+
+             
+
 
 
     #if scroll_axis < 0.1 and scroll_axis > -0.1:
@@ -124,6 +185,7 @@ while running:
     if joystick.get_button(0):  # A键
         pyautogui.mouseDown()
         pyautogui.mouseUp()
+        
 
     # 模拟鼠标右键点击
     if joystick.get_button(1):  # B键
@@ -134,14 +196,14 @@ while running:
     if joystick.get_button(2):  # X键
         pyautogui.press('backspace')
 
-    if joystick.get_button(4):  # LB键 刷新浏览器页面
-        pyautogui.hotkey('ctrl', 'r')
+    
+    if is_browser_active():
+        if joystick.get_button(4):  # LB键 切换到左一个浏览器页面  
+            pyautogui.hotkey('ctrl', 'shift', 'tab')  
 
-    if joystick.get_button(5):  # RB键 退出当前页面
-        if is_browser_active():
-            pyautogui.hotkey('ctrl', 'w')
-        else:
-            pyautogui.hotkey('alt', 'f4')
+        if joystick.get_button(5):  # RB键 切换到右一个浏览器页面  
+            pyautogui.hotkey('ctrl', 'tab')  
+
 
     if left > 0:  # LT键
         pyautogui.press('left')
